@@ -164,14 +164,15 @@ def calculate_indicators(df: pd.DataFrame) -> pd.DataFrame:
     # 볼린저 밴드 (20, 2)
     indicator_bb = ta.volatility.BollingerBands(close=df['close'], window=20, window_dev=2)
     df['bb_h'] = indicator_bb.bollinger_hband()
-    df['bb_m'] = indicator_bb.bollinger_mavg()
     df['bb_l'] = indicator_bb.bollinger_lband()
     
     # 더블비 볼린저 밴드 (44, 2)
     indicator_bb44 = ta.volatility.BollingerBands(close=df['close'], window=44, window_dev=2)
     df['bb44_h'] = indicator_bb44.bollinger_hband()
-    df['bb44_m'] = indicator_bb44.bollinger_mavg()
     df['bb44_l'] = indicator_bb44.bollinger_lband()
+    
+    # 중단선: 이동평균선 SMA 20 (볼린저 밴드 중간선 대체)
+    df['sma20'] = ta.trend.SMAIndicator(close=df['close'], window=20).sma_indicator()
     
     # RSI (14)
     df['rsi'] = ta.momentum.RSIIndicator(close=df['close'], window=14).rsi()
@@ -232,8 +233,8 @@ def trading_loop(config: Dict):
                     # 실거래 데이터 fetch
                     df = fetch_real_candles(symbol, binance, config["timeframe"])
                 
-                if len(df) < 20:
-                    # 충분한 데이터가 쌓일 때까지 대기
+                if len(df) < 44:
+                    # BB 44 계산을 위해 충분한 데이터(44개)가 쌓일 때까지 대기
                     continue
                 
                 # 지표 계산
@@ -251,30 +252,31 @@ def trading_loop(config: Dict):
                 curr_close = curr_row["close"]
                 prev_close = prev_row["close"]
                 
-                # BB 20
+                # BB 20 상/하단
                 curr_bb_h = curr_row["bb_h"]
                 curr_bb_l = curr_row["bb_l"]
-                curr_bb_m = curr_row["bb_m"]
                 
-                # BB 40 (더블비)
-                curr_bb40_h = curr_row["bb40_h"]
-                curr_bb40_l = curr_row["bb40_l"]
-                curr_bb40_m = curr_row["bb40_m"]
+                # BB 44 상/하단 (더블비)
+                curr_bb44_h = curr_row["bb44_h"]
+                curr_bb44_l = curr_row["bb44_l"]
+                
+                # 중단선: SMA 20 (이동평균선)
+                curr_sma20 = curr_row["sma20"]
                 
                 curr_rsi = curr_row["rsi"]
                 
                 # 이탈 및 복귀 정보 체크 (더블비 조건 반영)
-                # LONG 진입: 이전 종가가 BB 20 하단 또는 BB 40 하단을 이탈/터치한 상태에서 현재 종가가 두 밴드 하단 위로 복귀하고 RSI <= 30
+                # LONG: 이전 종가가 BB 20 하단 또는 BB 44 하단 이탈 후 두 하단 위로 복귀, RSI <= 30
                 is_long_signal = (
-                    (prev_close < prev_row["bb_l"] or prev_close < prev_row["bb40_l"]) and
-                    (curr_close > curr_bb_l and curr_close > curr_bb40_l) and
+                    (prev_close < prev_row["bb_l"] or prev_close < prev_row["bb44_l"]) and
+                    (curr_close > curr_bb_l and curr_close > curr_bb44_l) and
                     (curr_rsi <= 30)
                 )
                 
-                # SHORT 진입: 이전 종가가 BB 20 상단 또는 BB 40 상단을 이탈/터치한 상태에서 현재 종가가 두 밴드 상단 아래로 복귀하고 RSI >= 70
+                # SHORT: 이전 종가가 BB 20 상단 또는 BB 44 상단 이탈 후 두 상단 아래로 복귀, RSI >= 70
                 is_short_signal = (
-                    (prev_close > prev_row["bb_h"] or prev_close > prev_row["bb40_h"]) and
-                    (curr_close < curr_bb_h and curr_close < curr_bb40_h) and
+                    (prev_close > prev_row["bb_h"] or prev_close > prev_row["bb44_h"]) and
+                    (curr_close < curr_bb_h and curr_close < curr_bb44_h) and
                     (curr_rsi >= 70)
                 )
                 
@@ -299,8 +301,8 @@ def trading_loop(config: Dict):
                     if (direction == "LONG" and curr_close <= stop_loss) or (direction == "SHORT" and curr_close >= stop_loss):
                         execute_exit(symbol, position, curr_close, "STOP_LOSS", config, binance)
                     
-                    # B. 1차 익절 (볼린저 밴드 중간선 터치 시 본절 스톱로스 이동 및 50% 분할 청산)
-                    elif not half_cleared and ((direction == "LONG" and curr_close >= curr_bb_m) or (direction == "SHORT" and curr_close <= curr_bb_m)):
+                    # B. 1차 익절 (SMA 20 중단선 터치 시 본절 스톱로스 이동 및 50% 분할 청산)
+                    elif not half_cleared and ((direction == "LONG" and curr_close >= curr_sma20) or (direction == "SHORT" and curr_close <= curr_sma20)):
                         execute_partial_exit(symbol, position, curr_close, config, binance)
                         
                     # C. 2차 완청 (반대편 밴드 터치 시 전량 청산)

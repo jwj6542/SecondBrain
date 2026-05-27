@@ -22,11 +22,10 @@ const RealtimeChart: React.FC<RealtimeChartProps> = ({ symbol, chartData }) => {
     time: d.time.split(' ')[1] || d.time,
     Price: parseFloat(d.close.toFixed(4)),
     Upper: parseFloat(d.bb_h?.toFixed(4) || 0),
-    Basis: parseFloat(d.bb_m?.toFixed(4) || 0),
     Lower: parseFloat(d.bb_l?.toFixed(4) || 0),
-    Upper40: parseFloat(d.bb40_h?.toFixed(4) || 0),
-    Basis40: parseFloat(d.bb40_m?.toFixed(4) || 0),
-    Lower40: parseFloat(d.bb40_l?.toFixed(4) || 0),
+    Upper44: parseFloat(d.bb44_h?.toFixed(4) || 0),
+    Lower44: parseFloat(d.bb44_l?.toFixed(4) || 0),
+    SMA20: parseFloat(d.sma20?.toFixed(4) || 0),
     RSI: parseFloat(d.rsi?.toFixed(2) || 0)
   }));
 
@@ -42,7 +41,7 @@ const RealtimeChart: React.FC<RealtimeChartProps> = ({ symbol, chartData }) => {
           <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-ping"></span>
           📈 실시간 가격 & 더블 볼린저 밴드 다이어그램 — <span className="text-indigo-400 font-mono uppercase">{symbol}</span>
         </h3>
-        <span className="text-xs font-mono font-semibold text-slate-500">지표 설정: BB(20, 2) & BB(40, 2) / RSI(14)</span>
+        <span className="text-xs font-mono font-semibold text-slate-500">지표 설정: BB(20, 2) & BB(44, 2) / SMA(20) / RSI(14)</span>
       </div>
 
       {/* 1. 가격 & 볼린저 밴드 차트 */}
@@ -54,7 +53,7 @@ const RealtimeChart: React.FC<RealtimeChartProps> = ({ symbol, chartData }) => {
                 <stop offset="5%" stopColor="#818cf8" stopOpacity={0.05} />
                 <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="bbArea40" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="bbArea44" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#a855f7" stopOpacity={0.03} />
                 <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
               </linearGradient>
@@ -68,17 +67,18 @@ const RealtimeChart: React.FC<RealtimeChartProps> = ({ symbol, chartData }) => {
             
             {/* 볼린저 밴드 채우기 (Upper ~ Lower 사이 공간 셰이딩) */}
             <Area type="monotone" dataKey="Upper" stroke="none" fill="url(#bbArea)" />
-            <Area type="monotone" dataKey="Upper40" stroke="none" fill="url(#bbArea40)" />
+            <Area type="monotone" dataKey="Upper44" stroke="none" fill="url(#bbArea44)" />
             
-            {/* 볼린저 밴드 20선 (기본) */}
+            {/* 볼린저 밴드 20선 (기본) — 상단/하단 */}
             <Line type="monotone" dataKey="Upper" stroke="#f43f5e" strokeWidth={1.2} dot={false} strokeDasharray="3 3" name="BB 20 Upper" />
-            <Line type="monotone" dataKey="Basis" stroke="#475569" strokeWidth={1} dot={false} strokeDasharray="5 5" name="BB 20 Middle" />
             <Line type="monotone" dataKey="Lower" stroke="#10b981" strokeWidth={1.2} dot={false} strokeDasharray="3 3" name="BB 20 Lower" />
 
-            {/* 볼린저 밴드 40선 (더블비) */}
-            <Line type="monotone" dataKey="Upper40" stroke="#c084fc" strokeWidth={1.5} dot={false} name="BB 40 Upper" />
-            <Line type="monotone" dataKey="Basis40" stroke="#64748b" strokeWidth={1.2} dot={false} name="BB 40 Middle" />
-            <Line type="monotone" dataKey="Lower40" stroke="#22d3ee" strokeWidth={1.5} dot={false} name="BB 40 Lower" />
+            {/* 볼린저 밴드 44선 (더블비) — 상단/하단 */}
+            <Line type="monotone" dataKey="Upper44" stroke="#c084fc" strokeWidth={1.5} dot={false} name="BB 44 Upper" />
+            <Line type="monotone" dataKey="Lower44" stroke="#22d3ee" strokeWidth={1.5} dot={false} name="BB 44 Lower" />
+            
+            {/* 중단선: SMA 20 이동평균선 */}
+            <Line type="monotone" dataKey="SMA20" stroke="#facc15" strokeWidth={1.5} dot={false} strokeDasharray="6 3" name="SMA 20" />
             
             {/* 실제 가격 종가선 */}
             <Line type="monotone" dataKey="Price" stroke="#6366f1" strokeWidth={2.5} dot={{ r: 1 }} activeDot={{ r: 6 }} name="Close Price" />
