@@ -1,0 +1,98 @@
+openapi: 3.0.1
+info:
+  title: Premium Monitoring Service - Resilience API
+  description: 시스템 복원력 지수(RSI) 및 자본 보존 시뮬레이션 데이터 제공을 위한 공식 API 명세서입니다. 모든 외부 연동은 이 스펙을 따릅니다.
+  version: v3.0.1
+servers:
+  - url: /api/v3/resilience
+    description: 시스템 복원력 모니터링 핵심 엔드포인트
+
+paths:
+  /simulate_rsi:
+    get:
+      tags:
+        - Resilience Index
+      summary: 실시간 시장 변동에 따른 예측 RSI 지수를 계산하고 반환합니다.
+      operationId: getRsiValue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                  example: XAUUSD
+                  description: 분석할 트레이딩 상품 심볼.
+                lookback_period:
+                  type: integer
+                  example: 30
+                  description: RSI 계산에 사용할 과거 데이터 기간 (일).
+      responses:
+        '200':
+          description: 성공적으로 RSI 데이터를 반환합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RsiResponse'
+        '400':
+          description: 요청 파라미터가 잘못되었거나 심볼을 찾을 수 없습니다.
+        '500':
+          description: 내부 서버 오류 발생 (데이터 처리 실패 등).
+
+  /simulate_stress_test:
+    post:
+      tags:
+        - Stress Test Simulation
+      summary: 강제 시나리오를 주입하여 시스템의 복원력(Resilience)을 테스트합니다.
+      operationId: runStressTest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scenario_type:
+                  type: string
+                  enum: [BlackSwan, DataGap, Spike]
+                  example: BlackSwan
+                  description: 강제 주입할 위기 시나리오 유형.
+                duration_days:
+                  type: integer
+                  example: 7
+                  description: 테스트를 진행할 기간 (일).
+      responses:
+        '200':
+          description: 스트레스 테스트 결과를 성공적으로 반환합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StressTestResult'
+        '401':
+          description: 인증 토큰이 만료되었거나 권한이 부족합니다.
+
+components:
+  schemas:
+    RsiResponse:
+      type: object
+      properties:
+        symbol: {type: string}
+        current_rsi: {type: number, description: 현재 계산된 RSI 값 (0-100)}
+        is_alert: {type: boolean, description: 시스템 경고 상태 여부}
+        recovery_flow_score: {type: number, description: 복구 과정의 매끄러움/안정성 점수 (0-100)}
+    StressTestResult:
+      type: object
+      properties:
+        scenario_applied: {type: string}
+        max_drawdown_pct: {type: number}
+        recovery_index: {type: number, description: 시스템의 복원력 지표 (높을수록 좋음)}
+        report_data: 
+          type: array
+          items:
+            type: object
+            properties:
+              date: {type: string, format: date}
+              value: {type: number}
+              status: {type: string, enum: [Normal, Warning, Critical]}
