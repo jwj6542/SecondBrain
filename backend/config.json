@@ -1,0 +1,18 @@
+{
+  "trading_active": true,
+  "paper_trading": true,
+  "binance": {
+    "api_key": "",
+    "secret_key": "",
+    "leverage": 3,
+    "risk_percent": 1.0
+  },
+  "hantec": {
+    "login": "",
+    "password": "",
+    "server": "",
+    "risk_percent": 1.0
+  },
+  "daily_loss_limit_percent": 3.0,
+  "timeframe": "1m"
+}

@@ -1,23 +1,64 @@
 import React from 'react';
+import { AlertCircle, AlertTriangle, CheckCircle, HelpCircle } from 'lucide-react';
 
-const StrategyLog = () => {
+interface LogEntry {
+  timestamp: string;
+  type: 'ALERT' | 'WARN' | 'INFO' | 'DEBUG' | string;
+  message: string;
+}
+
+interface StrategyLogProps {
+  logs: LogEntry[];
+}
+
+const StrategyLog: React.FC<StrategyLogProps> = ({ logs }) => {
   return (
-    <>
-        <div className="space-y-3 max-h-64 overflow-y-auto pr-2 border p-2 rounded-md bg-gray-50">
-            {/* 로그 항목 예시 */}
-            {[
-                { type: 'ALERT', message: '⚠️ 일일 손실률 3.1% 초과! 거래 자동 정지 (Max Daily Loss).' },
-                { type: 'WARN', message: '🚨 포지션 XAUUSD의 RSI가 과매수 영역 진입. 청산 고려 필요.' },
-                { type: 'INFO', message: '✅ 모든 시스템 정상 작동. EMA/RSI 조건 만족으로 신규 포지션 진입 (BTCUSDT Long).' },
-                { type: 'DEBUG', message: '⚙️ 백테스트 완료: 과거 3개월간 최대 드로우다운 -2.1%.' },
-            ].map((log, index) => (
-                <div key={index} className={`p-2 text-sm rounded ${log.type === 'ALERT' ? 'bg-red-100 border-l-4 border-red-500' : log.type === 'WARN' ? 'bg-yellow-100 border-l-4 border-yellow-500' : 'bg-white border-l-4 border-gray-200'}`}>
-                    <span className={`font-semibold mr-2 ${log.type === 'ALERT' ? 'text-red-700' : log.type === 'WARN' ? 'text-yellow-700' : 'text-blue-700'}`}>{log.type}:</span> 
-                    {log.message}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">실시간 전략 실행 로그</h3>
+        <span className="text-[10px] font-bold text-slate-400 tracking-wider">Live Logging (1s)</span>
+      </div>
+
+      <div className="space-y-3.5 max-h-72 overflow-y-auto pr-1 border border-slate-100 p-3 rounded-2xl bg-slate-50 shadow-inner">
+        {logs.length === 0 ? (
+          <div className="text-center text-xs text-slate-400 py-12">
+            표시할 실시간 트레이딩 로그가 없습니다.
+          </div>
+        ) : (
+          logs.map((log, index) => {
+            let typeColor = 'text-blue-700 bg-blue-50 border-blue-400';
+            let icon = <HelpCircle className="w-4 h-4 text-blue-500" />;
+
+            if (log.type === 'ALERT') {
+              typeColor = 'bg-red-50 border-red-200 border-l-4 border-l-red-500 text-red-900';
+              icon = <AlertCircle className="w-4.5 h-4.5 text-red-500 shrink-0" />;
+            } else if (log.type === 'WARN') {
+              typeColor = 'bg-amber-50 border-amber-200 border-l-4 border-l-amber-500 text-amber-900';
+              icon = <AlertTriangle className="w-4.5 h-4.5 text-amber-500 shrink-0" />;
+            } else if (log.type === 'INFO') {
+              typeColor = 'bg-white border-slate-100 border-l-4 border-l-indigo-500 text-slate-800 shadow-sm';
+              icon = <CheckCircle className="w-4.5 h-4.5 text-indigo-500 shrink-0" />;
+            }
+
+            return (
+              <div 
+                key={index} 
+                className={`p-3 text-xs rounded-xl flex items-start gap-2.5 transition-all duration-200 border ${typeColor}`}
+              >
+                {icon}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold uppercase text-[10px] tracking-widest">{log.type}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">{log.timestamp}</span>
+                  </div>
+                  <p className="font-semibold leading-relaxed tracking-tight">{log.message}</p>
                 </div>
-            ))}
-        </div>
-    </>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
   );
 };
 
