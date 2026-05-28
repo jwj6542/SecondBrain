@@ -1,0 +1,60 @@
+/* CSS: 시각적 요소 및 글리치 효과 구현 */
+
+.poc-widget-container {
+    font-family: 'Arial', sans-serif;
+    padding: 20px;
+    border: 1px solid #eee;
+    background-color: #fff;
+    position: relative; /* Glitch Effect 기준점 */
+}
+
+.status-indicator {
+    padding: 25px;
+    margin-bottom: 30px;
+    text-align: center;
+    border-radius: 12px;
+    transition: all 0.5s ease-in-out; /* 상태 변화에 부드러운 애니메이션 적용 */
+}
+
+.status-indicator h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.8em;
+}
+
+.metrics-panel {
+    margin-top: 20px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.data-table th, .data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+/* --- Glitch Effect CSS (핵심!) --- */
+.glitch-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* 마우스 이벤트 무시 */
+    z-index: 10;
+    opacity: 0.8;
+    animation: glitch 0.2s linear infinite alternate; /* 짧고 반복적인 애니메이션 */
+}
+
+@keyframes glitch {
+    0% { transform: translate(0); opacity: 0.5; }
+    20% { transform: translate(-2px, -2px); opacity: 1; }
+    40% { transform: translate(-3px, 3px); opacity: 0.7; }
+    60% { transform: translate(2px, 2px); opacity: 0.8; }
+    80% { transform: translate(0px, -1px); opacity: 0.5; }
+    100% { transform: translate(1px, 1px); opacity: 0.9; }
+}
