@@ -1,0 +1,64 @@
+{
+  "events": [
+    {
+      "event_id": "VIX_Spike",
+      "timestamp_start": "2026-05-27T06:00:00Z",
+      "timestamp_end": "2026-05-28T06:00:00Z",
+      "asset_class": "Volatility Index (VIX)",
+      "volatility_change_pct": 94.4,
+      "price_change_pct": null,
+      "liquidation_volume_usd": 0,
+      "open_interest_change_pct": 0,
+      "correlation_shift": 0,
+      "systemic_risk_indicator": "VIX surge indicates heightened market fear and potential contagion"
+    },
+    {
+      "event_id": "SPX_Nasdaq_Crash",
+      "timestamp_start": "2026-05-27T14:00:00Z",
+      "timestamp_end": "2026-05-28T14:00:00Z",
+      "asset_class": "Equity Index Futures (S&P 500, Nasdaq‑100)",
+      "volatility_change_pct": 35.0,
+      "price_change_pct": -4.5,
+      "liquidation_volume_usd": 0,
+      "open_interest_change_pct": 2.3,
+      "correlation_shift": 0,
+      "systemic_risk_indicator": "Sharp price drops and yield rise signal systemic risk transmission across asset classes"
+    },
+    {
+      "event_id": "BTC_Liquidation_Surge",
+      "timestamp_start": "2026-05-27T18:00:00Z",
+      "timestamp_end": "2026-05-28T18:00:00Z",
+      "asset_class": "Crypto Futures (BTC/USDT)",
+      "volatility_change_pct": 12.0,
+      "price_change_pct": -6.0,
+      "liquidation_volume_usd": 1200000000,
+      "open_interest_change_pct": 5.8,
+      "correlation_shift": 0,
+      "systemic_risk_indicator": "Large liquidations amplify leverage risk and can trigger chain reactions in broader markets"
+    },
+    {
+      "event_id": "Equity_OI_Increase",
+      "timestamp_start": "2026-05-27T09:00:00Z",
+      "timestamp_end": "2026-05-28T09:00:00Z",
+      "asset_class": "Equity Index Futures (S&P 500 E‑mini)",
+      "volatility_change_pct": 35.0,
+      "price_change_pct": -4.0,
+      "liquidation_volume_usd": 0,
+      "open_interest_change_pct": 12.0,
+      "correlation_shift": 0,
+      "systemic_risk_indicator": "Higher open interest with modest price moves suggests increased leverage exposure"
+    },
+    {
+      "event_id": "Cross_Asset_Correlation_Spike",
+      "timestamp_start": "2026-05-27T22:00:00Z",
+      "timestamp_end": "2026-05-28T22:00:00Z",
+      "asset_class": "Multi‑Asset (Equities, Bonds, Crypto)",
+      "volatility_change_pct": 78.0,
+      "price_change_pct": null,
+      "liquidation_volume_usd": 0,
+      "open_interest_change_pct": 0,
+      "correlation_shift": 0.43,
+      "systemic_risk_indicator": "Correlation jump from 0.35 to 0.78 indicates systemic contagion risk across unrelated asset classes"
+    }
+  ]
+}
