@@ -1,0 +1,19 @@
+{
+    "report_name": "Recovery Event Log (REL)",
+    "description": "시스템의 블랙 스완 이벤트 발생 시 자본 보존 설계(Capital Preservation Design) 기반 자동 회복 기록.",
+    "timestamp_generated": "[현재 시간]",
+    "events": [
+        {
+            "event_id": 1,
+            "failure_time_utc": "2026-05-27 14:23:15",
+            "trigger_condition": "API 연결 끊김 (Simulated Disconnect) + 시장 스파이크 발생",
+            "initial_risk_metric": {"Metric": "Max Drawdown Ratio", "Value": 0.05},
+            "failover_action": "Dynamic Position Sizing 축소 및 트래일링 스탑 활성화 (Level 2 Failover)",
+            "recovery_start_time_utc": "2026-05-27 14:23:15",
+            "system_state_during_recovery": "헤징 전략 병행 및 포지션 축소",
+            "recovered_at_utc": "2026-05-27 14:35:00",
+            "recovery_duration_seconds": 7.7,
+            "final_risk_metric": {"Metric": "Max Drawdown Ratio", "Value": 0.01}
+        }
+    ]
+}
