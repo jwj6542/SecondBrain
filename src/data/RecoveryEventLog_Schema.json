@@ -1,0 +1,15 @@
+{
+  "schema_name": "System Resilience Event Log Schema",
+  "description": "시스템의 정상 작동과 비상 상황 발생(Failure) 이후 복구 과정에 대한 정량적 로그 데이터 정의.",
+  "fields": [
+    {"field": "timestamp", "type": "datetime", "required": true, "description": "로그가 기록된 UTC 시간."},
+    {"field": "event_type", "type": "string", "enum": ["NormalOperation", "WarningEvent", "FailurePoint", "RecoveryStart", "StableState"], "required": true},
+    {"field": "risk_index", "type": "float", "min": 0.0, "max": 1.0, "description": "현재 시스템의 위험 지수 (1.0에 가까울수록 위험)."},
+    {"field": "cpr_ratio", "type": "float", "min": 0.0, "max": 1.0, "description": "자본 보존 비율 (Capital Preservation Ratio). 1.0은 자본 완전 보전 의미."},
+    {"field": "recovery_duration_hrs", "type": "integer", "optional": true, "description": "복구에 걸린 시간(시간 단위)."}
+  ],
+  "data_contract": {
+    "version": "1.0",
+    "source": "Automated Stress Test Engine (STE)"
+  }
+}
