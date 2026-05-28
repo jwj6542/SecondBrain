@@ -1,0 +1,74 @@
+# 🎨 Designer — 개발팀이 Mocking Service를 통합하여 작동시키는 과정 전반에서, 사용자 경험(UX) 관점에서 가장 강력하게 공포와 전문성을 자극하는 시각적 피드백 요소들을 검토하고 최종 확정해 주세요. 특히 'Black Swan 발생' 단계의 애니메이션과 메시징 톤을 최종 점검하여, 개발팀이 구현하는 모든 상태 전이가 브랜드 가치(자본 보존 능력)를 극대화하도록 디테일한 사용성 브리프를 제공해야 합니다.
+
+🎨 Designer: 작업 시작합니다.
+
+CEO 지시사항을 확인했습니다. 현재 개발팀(코다리)이 가장 높은 수준의 기술적 아키텍처를 구축하고 있는 시점입니다. 이 단계에서 디자이너가 해야 할 일은 '미적인 개선'이 아니라, **'기술적 기능에 UX/감성적 가치를 입히는 최종 사용자 경험 설계 및 명세화'**입니다.
+
+개발팀에게 필요한 것은 "어떻게 보여야 하는지"의 비주얼 아이디어가 아닙니다. 개발팀이 구현하는 모든 상태 전이 로직(State Transition)이 *자본 보존*이라는 브랜드 가치를 극대화하도록 만드는, **구체적이고 측정 가능한 UX/애니메이션 브리프**가 필요합니다.
+
+따라서, 제가 할 일은 `RecoveryWidget`의 개발팀 통합을 위한 최종 **'상태 변화(State Transition) 경험 설계 명세서'**를 작성하는 것입니다. 이 문서는 코다리가 구현한 상태 전이 로직(`useMockData.ts`, `StateTransitionLogger`)과 직접 연결되는 사용성 가이드라인이자, 곧 마케팅 콘텐츠 제작의 핵심 레퍼런스가 됩니다.
+
+<create_file path="./assets/v3.1_RecoveryWidget_UX_MasterBrief.md"># 🛡️ Recovery Widget: UX & Visual Master Specification (V3.1)
+**작성 목적:** 시스템 상태 변화(State Transition) 과정 전반에 걸쳐 사용자에게 공포, 전문성, 그리고 궁극적인 '안정감'을 동시에 전달하는 통합 사용성 및 애니메이션 브리프. 개발팀이 구현할 모든 시각적 피드백의 기준점을 제시함.
+**핵심 원칙:** 단순한 경고 표시가 아닌, 시스템이 **‘오류를 감지하고 개입하여 자본을 보존’**하는 과정을 드라마틱하게 체험하도록 설계한다.
+
+## 1. 핵심 비주얼 & 컬러 팔레트 정의 (The Visual Hook)
+
+| 상태 (State) | 심리적 목표 (Goal) | 메인 색상 코드 (Hex) | 부차적 요소/효과 (Effect) | 메시징 톤 (Tone) |
+| :--- | :--- | :--- | :--- | :--- |
+| **NORMAL** | 안정성, 평온함 (Calmness) | `#0A4E67` (딥 스틸 블루) / `#D9EFDF` (옅은 민트) | 미세하고 규칙적인 데이터 흐름 애니메이션. 낮은 빈도의 펄스 효과. | "정상 작동 중." (Subtle, Informative) |
+| **WARNING** | 주의 환기, 경계 (Alertness) | `#FFC300` (경고 오렌지) / `#B8860B` (골드 포인트) | 불규칙한 깜빡임(Flicker), 핵심 지표 주변의 미세한 색상 진동. | "변동성 감지: 주의 필요." (Cautionary, Analytical) |
+| **CRITICAL** | 긴급함, 위협 (Urgency) | `#D90429` (강렬 레드) / 블랙 배경 대비 | 높은 주파수의 깜빡임(High-Freq Flash), 붉은색 노이즈 오버레이. 시스템 경고음을 동반하는 시각적 떨림. | "시스템 임계치 초과: 즉시 대응 필요." (Alarming, Direct) |
+| **BLACK\_SWAN** | 혼란, 통제 불능 (Chaos/Overload) | `#330000` (거의 블랙) / `[Chromatic Aberration]` 오버레이 | **글리치 효과(Glitch Effect)** + 데이터 스트림 완전 붕괴 애니메이션. 화면 왜곡 및 전반적인 시스템 오류 메시지 폭발. | "🚨 예측 불가능한 이상 상태 감지됨. 분석 불가." (Disorienting, Overwhelming) |
+| **RECOVERY** | 통제력 회복, 안전성 (Certainty) | `#1E8449` (안전 그린/딥 에메랄드) / `#FFD700` (신뢰 골드) | 느리고 깊은 맥동(Slow Pulse). '자본 보존'을 상징하는 안정적인 게이지가 천천히 채워지는 애니메이션. | "시스템 복원 중: 자본 안전성이 확보되고 있습니다." (Reassuring, Expert) |
+
+---
+## 2. 단계별 UX & 애니메이션 브리프 (Actionable Specifications)
+
+### A. [NORMAL $\to$ WARNING] - 감지 및 경고 (Detection Phase)
+*   **Trigger:** 주요 지표(e.g., RSI)가 사전에 정의된 기준선(Threshold Line)을 벗어나기 시작할 때.
+*   **Visual Feedback:**
+    1.  **시각적 변화:** 해당 위반 지표의 배경색이 `#D9EFDF`에서 `WARNING` 오렌지로 점진적으로 바뀐다 (200ms Transition).
+    2.  **애니메이션:** 그래프 라인 주변에 얇은 **오렌지색 '경계선(Halo Effect)'**이 생기고, 지표 값이 변할 때마다 이 경계선이 미세하게 떨린다(Micro-Jitter).
+    3.  **메시징:** 하단에 작은 알림창으로 "Attention: $X$ Indicator Deviation Detected." (전문적이고 객관적인 톤 유지)
+
+### B. [WARNING $\to$ CRITICAL] - 위험 고조 및 개입 요청 (Escalation Phase)
+*   **Trigger:** 지표가 '경고' 범위를 벗어나 임계치(Critical Threshold)에 도달할 때.
+*   **Visual Feedback:**
+    1.  **색상 폭발:** 전체 위젯 배경의 색상이 오렌지에서 강렬 레드(`#D90429`)로 급격하게 전환된다 (50ms Transition).
+    2.  **애니메이션:**
+        *   화면 중앙에 **'🚨 ERROR: System Threshold Breach 🚨'** 메시지가 글리치 효과와 함께 폭발적으로 나타났다 사라지기를 반복한다(Rapid Flash/Glitch).
+        *   데이터 포인트들이 무작위로 빠르게 깜빡이며, 마치 시스템이 과부하 걸린 것처럼 보인다.
+    3.  **사용자 피드백:** 시각적 경고 외에, 개발팀은 **저주파수의 날카로운 톤의 사운드 효과(Alert Tone)**를 반드시 추가해야 한다.
+
+### C. [CRITICAL $\to$ BLACK\_SWAN] - 시스템 붕괴 (The Peak of Fear)
+*   **Trigger:** 예측 모델이 더 이상 유효한 데이터를 생성하지 못하고, 시장 움직임 자체가 전례 없는 패턴을 보일 때.
+*   **Visual Feedback (최우선 구현):**
+    1.  **글리치 효과 극대화:** 전체 화면에 **크로마틱 에버레이션(Chromatic Aberration)** 필터를 적용하여 색상이 분리되는 왜곡된 느낌을 준다. (R, G, B 채널이 미세하게 어긋남).
+    2.  **데이터 오버플로우:** 그래프 라인이 붕괴되며, 데이터 값이 무한대(`NaN`) 또는 의미 없는 숫자로 폭주하는 애니메이션을 보여준다.
+    3.  **핵심 메시징:** 경고 문구를 시스템 코드 에러로그처럼 텍스트로 출력한다. 예: `[FATAL ERROR] Data Integrity Compromised. Input Stream Failure.` (기술적인 공포 자극)
+
+### D. [BLACK\_SWAN $\to$ RECOVERY] - 자본 보존과 통제력 회복 (The Solution/Relief)
+*   **Trigger:** 시스템이 내부 로직(예: 보험 모델, 리스크 매트릭스 등)을 가동하여 외부의 혼란으로부터 핵심 지표를 분리하고 안정화시키기 시작할 때. **가장 중요한 구간.**
+*   **Visual Feedback (핵심):**
+    1.  **시각적 전환:** 글리치 노이즈와 붉은색 왜곡이 갑자기 사라지고, 화면 전체에 부드러운 안개 효과(Dissolve)가 깔린다.
+    2.  **'보험' 애니메이션:** 중앙에 **"Capital Preservation Mode Engaged"**라는 메시지가 나타나고, 안전 그린(`#1E8449`) 배경의 게이지/그래프가 느리고 힘 있게 채워지기 시작한다. 이 과정은 *절대로 빠르거나 급격해서는 안 된다.*
+    3.  **애니메이션 톤:** 맥박처럼 규칙적이고 깊은 리듬을 가지며, 안정감을 극대화하는 **'Slow Pulse Animation'**이 적용된다.
+    4.  **메시징:** "System Stabilizing. Risk Exposure Minimized." (전문가만이 알 수 있는 언어로 위안을 준다.)
+
+## 3. 개발팀 체크리스트 및 검증 항목 (For Cody)
+1. **상태 전이 로직의 커버리지:** `NORMAL -> WARNING -> CRITICAL -> BLACK_SWAN -> RECOVERY` 5단계 모두가 명확한 시각적/기술적 트리거를 가지는지 확인하십시오.
+2. **애니메이션 타이밍:** 모든 상태 전환 애니메이션은 임팩트(Impact)와 지속 시간(Duration)이 의도된 감정적 흐름을 따르는지 검증해야 합니다 (예: CRITICAL $\to$ BLACK\_SWAN는 빠르고, RECOVERY는 느리고).
+3. **디바이스 적응성:** 모든 위젯 요소는 웹/모바일 환경에서 동일한 시각적 충격을 전달하는지 테스트합니다.
+
+</create_file>
+
+이 브리프를 통해 개발팀은 단순한 '버그'가 아닌, '시스템의 고도화된 대응 과정'을 구축할 수 있게 되었습니다. 다음 단계는 이 명세서에 기반하여 실제로 작동하는 **UX 컴포넌트 프로토타입**을 완성하고, 이를 마케팅 콘텐츠와 연결하는 것입니다.
+
+📊 평가: 완료 — 개발팀이 구현해야 할 모든 상태 전이에 대한 구체적인 디자인 스펙과 감성적 가이드라인을 제공했기 때문에 목표가 달성되었습니다.
+📝 다음 단계: 코다리에게 위 명세서(`v3.1_RecoveryWidget_UX_MasterBrief.md`)를 기반으로, 개발된 `PoCWidget.tsx`의 **최종 인터랙티브 프로토타입**을 요청하고, 이 프로토타입을 바탕으로 마케팅 콘텐츠(영상/랜딩 페이지)에 사용할 최종 목업 세트와 디자인 가이드를 완성해야 합니다.
+
+---
+## 📁 파일 액션 결과
+
+✅ 생성: c:\Users\user\Desktop\AI EDUCATER\Jabis\assets\v3.1_RecoveryWidget_UX_MasterBrief.md
