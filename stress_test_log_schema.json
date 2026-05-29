@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Stress Test Log Set Input Schema",
+  "type": "object",
+  "required": ["timestamp", "symbol", "price_open", "price_high", "price_low", "volume", "vix", "system_state_before", "system_state_after", "fault_injection_flag"],
+  "properties": {
+    "timestamp": { "type":"string","format":"date-time"},
+    "symbol": { "type":"string"},
+    "price_open": { "type":"number"},
+    "price_high": { "type":"number"},
+    "price_low": { "type":"number"},
+    "volume": { "type":"number"},
+    "vix": { "type":"number"},
+    "system_state_before": { "type":"string","enum":["S1","S2","S3"]},
+    "system_state_after": { "type":"string","enum":["S1","S2","S3"]},
+    "fault_injection_flag": { "type":"boolean"}
+  }
+}
