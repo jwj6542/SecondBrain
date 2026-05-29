@@ -1,99 +1,133 @@
-// 핵심 위젯 컴포넌트: 상태 로직 및 시각적 피드백 구현
 import React, { useState, useEffect } from 'react';
-import useMockData from '../hooks/useMockData';
-import './PoCWidget.css'; // CSS 파일이 필요합니다
+// Mock API Contract를 사용하여 데이터를 불러옴
+import { fetchRiskIndexData } from '../api/mockService';
 
-type SystemMetrics = {
-    timestamp: number;
-    vixIndex: number;
-    correlationCoefficient: number;
-    systemHealthScore: number;
-};
+// ---------------------------------------------
+// 1. 타입 정의 (Robustness Check)
+// ---------------------------------------------
 
-// 1. 상태 정의 (State Machine)
-type WidgetState = 'Normal' | 'Warning' | 'Critical' | 'Recovery';
+type WidgetState = 'LOADING' | 'SAFE' | 'WARNING' | 'CRISIS';
 
-/**
- * 데이터 기반으로 시스템의 현재 위험 상태를 판단하는 로직입니다.
- */
-const determineState = (metrics: SystemMetrics): { state: WidgetState; message: string } => {
-    // 1차 조건: 종합 건강 점수 확인
-    if (metrics.systemHealthScore < 40) return { state: 'Critical', message: "🚨 시스템 임계치 이탈! 즉각적인 자본 보존 조치가 필요합니다." };
-    // 2차 조건: VIX 지표 폭발 여부 확인
-    if (metrics.vixIndex > 30 || metrics.correlationCoefficient < 0.4) {
-        return { state: 'Critical', message: "🔥 구조적 붕괴 임박! 변동성 및 상관관계가 통제 범위를 벗어났습니다." };
-    }
-    // 3차 조건: 경고 수준 진입 (VIX 상승 또는 점수 하락)
-    if (metrics.systemHealthScore < 70 || metrics.vixIndex > 20) {
-        return { state: 'Warning', message: "⚠️ 시스템 불안정 감지. 리스크 관리를 강화하고 모니터링을 지속해야 합니다." };
-    }
-    // 기본 상태
-    return { state: 'Normal', message: "✅ 정상 작동 범위 내에 있습니다. 자본 보존 원칙을 유지하세요." };
-};
+interface RiskData {
+    timestamp: string;
+    riskIndex: number; // 핵심 지표
+    capitalPreservationScore: number; // 자본 보존 점수
+    systemResilienceRatio: number; // 시스템 복원력 비율 (MDRR)
+}
+
+// ---------------------------------------------
+// 2. 상수 정의 (Business Logic Centralization)
+// ---------------------------------------------
+
+const WARNING_THRESHOLD = 0.65; // 예시 임계치: Risk Index가 0.65 이상이면 Warning
+const CRISIS_THRESHOLD = 0.85;  // 예시 임계치: Risk Index가 0.85 이상이면 Crisis
 
 /**
- * 글리치 효과를 시뮬레이션하는 컴포넌트 (CSS 애니메이션 의존)
+ * PoC Widget 컴포넌트: 시스템적 생존력 지표를 보여주고 상태 변화를 감지하는 핵심 로직을 담당합니다.
  */
-const GlitchEffect = () => (
-    <div className="glitch-overlay"></div>
-);
-
-
 const PoCWidget: React.FC = () => {
-    // Mocking Service 연결
-    const metrics = useMockData({ timestamp: Date.now(), vixIndex: 15, correlationCoefficient: 0.7, systemHealthScore: 92 });
-    
-    // 상태 계산 및 변화 감지
-    const [currentState, setCurrentState] = useState<{ state: WidgetState; message: string }>({ state: 'Normal', message: '' });
+    // 상태와 데이터 저장
+    const [riskData, setRiskData] = useState<RiskData | null>(null);
+    const [widgetState, setWidgetState] = useState<WidgetState>('LOADING');
+    const [isLoading, setIsLoading] = useState(true);
 
+    /**
+     * 리스크 데이터를 가져와서 위젯의 상태를 결정하는 핵심 로직 (State Change Handler)
+     */
+    const analyzeRiskData = (data: RiskData) => {
+        let newState: WidgetState;
+        if (data.riskIndex >= CRISIS_THRESHOLD) {
+            newState = 'CRISIS';
+        } else if (data.riskIndex >= WARNING_THRESHOLD) {
+            // 🚨 여기가 CEO가 지시한 Warning 상태 진입 로직입니다.
+            console.log("⚠️ [STATE CHANGE]: 경고(WARNING) 상태 진입 감지! Risk Index:", data.riskIndex);
+            newState = 'WARNING';
+        } else if (data.capitalPreservationScore < 0.7) {
+             // 지수만으로 판단하기 어려울 경우, 보조 지표 사용 가능
+             console.log("🟠 [STATE CHANGE]: 주의(PRE-WARNING) 상태 감지.");
+             newState = 'SAFE'; // 임시 처리
+        } else {
+            newState = 'SAFE';
+        }
+        setWidgetState(newState);
+        setRiskData(data);
+    };
+
+    /**
+     * API 호출 및 상태 분석을 담당하는 useEffect Hook
+     */
     useEffect(() => {
-        const newStateInfo = determineState(metrics);
-        setCurrentState(newStateInfo);
-    }, [metrics]);
+        const fetchData = async () => {
+            setIsLoading(true);
+            try {
+                // Mock Service를 통해 데이터를 가져옵니다.
+                const data: RiskData = await fetchRiskIndexData();
+                analyzeRiskData(data);
+            } catch (error) {
+                console.error("Error fetching risk data:", error);
+                setWidgetState('CRISIS'); // 에러 발생 시 최대 위험 상태로 가정
+                setRiskData({ timestamp: new Date().toString(), riskIndex: 1.0, capitalPreservationScore: 0.0, systemResilienceRatio: 0.0 });
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
+        // 초기 로딩 시 실행 (실제 운영 환경에서는 폴링 인터벌 설정 필요)
+        fetchData();
+    }, []); // 빈 배열로 설정하여 컴포넌트 마운트 시 한 번만 데이터를 불러오도록 합니다.
 
-    // 상태에 따른 스타일 및 효과 결정 로직
-    const getStatusStyles = (state: WidgetState) => {
-        switch (state) {
-            case 'Normal': return { color: '#10B981', bg: 'rgba(16, 185, 129, 0.1)' }; // Green
-            case 'Warning': return { color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.1)' }; // Yellow/Amber
-            case 'Critical': return { color: '#EF4444', bg: 'rgba(239, 68, 68, 0.2)' }; // Red - 고강도 경고 배경
-            default: return { color: '#6B72HD', bg: 'rgba(107, 114, 208, 0.1)' };
+    // ---------------------------------------------
+    // 3. 상태별 렌더링 로직 (Structural Skeleton)
+    // ---------------------------------------------
+
+    const renderContent = () => {
+        if (isLoading) {
+            return <div className="widget-content loading">⚙️ 데이터 분석 중...</div>;
+        }
+
+        if (!riskData) return null; // 데이터가 없으면 아무것도 표시하지 않음.
+
+        switch (widgetState) {
+            case 'SAFE':
+                return (
+                    <div className="widget-content safe">✅ 안정적입니다. 시스템은 자본 보존 원칙을 잘 유지하고 있습니다.</div>
+                );
+            case 'WARNING':
+                // 🚨 WARNING 상태 진입 시, 공포를 극대화하는 구조적 스켈레톤 구현
+                return (
+                    <div className="widget-content warning">
+                        <h2>⚠️ 경고: 시스템 위험 레벨 감지!</h2>
+                        <p>현재 시장의 변동성이 통제 가능한 범위를 벗어나고 있습니다. 즉각적인 점검이 필요합니다.</p>
+                        {/* [DATA BINDING POINT 1]: 실시간 리스크 지수 시각화 영역 */}
+                        <div className="metric-card critical">
+                            <h3>🚨 실시간 위험 지표 (Risk Index)</h3>
+                            <p>{riskData.riskIndex.toFixed(2)}</p>
+                            {/* 이 자리에 디자인팀이 그래프/미터기를 넣을 예정입니다. */}
+                        </div>
+                        {/* [DATA BINDING POINT 2]: 핵심 조언 및 CTA 유도 영역 */}
+                        <div className="metric-card warning-hint">
+                            <h3>💡 코다리 분석: 무엇을 해야 할까요?</h3>
+                            <p>시스템적 위험에 대한 정밀 진단이 필요합니다. **$97 미니 보고서**를 통해 근본 원인을 파악하세요.</p>
+                            {/* 이 자리에 CTA 버튼 로직이 들어갈 것입니다. */}
+                        </div>
+                    </div>
+                );
+            case 'CRISIS':
+                 return (
+                    <div className="widget-content crisis">🔥 치명적 위험! 즉시 거래를 중단하고 안전 모드로 전환해야 합니다.</div>
+                );
+            default:
+                return null;
         }
     };
 
-    const statusStyle = getStatusStyles(currentState.state);
-
+    // 최종 JSX 반환 구조
     return (
-        <div className="poc-widget-container">
-            {/* 🚨 글리치 효과는 Critical 상태에만 적용하여 공포감을 극대화합니다 */}
-            {currentState.state === 'Critical' && <GlitchEffect />}
-            
-            <div className="status-indicator" style={{ backgroundColor: statusStyle.bg, border: `2px solid ${statusStyle.color}` }}>
-                <h3 style={{ color: statusStyle.color }}>[ {currentState.state} 상태 ]</h3>
-                <p>{currentState.message}</p>
-            </div>
-
-            {/* 실시간 지표 테이블 */}
-            <div className="metrics-panel">
-                <h4>📊 핵심 시스템 지표 (Mock Data)</h4>
-                <table className="data-table">
-                    <tr>
-                        <th>VIX Index</th>
-                        <td style={{ color: metrics.vixIndex > 25 ? 'red' : '#3B82F6' }}>{metrics.vixIndex}</td>
-                    </tr>
-                    <tr>
-                        <th>상관관계 계수 (ρ)</th>
-                        <td style={{ color: metrics.correlationCoefficient < 0.5 ? 'orange' : '#10B981' }}>{metrics.correlationCoefficient}</td>
-                    </tr>
-                     <tr>
-                        <th>종합 건강 점수</th>
-                        <td style={{ color: metrics.systemHealthScore < 60 ? 'red' : '#1D4ED8' }}>{metrics.systemHealthScore} / 100</td>
-                    </tr>
-                </table>
-            </div>
+        <div className={`poc-widget widget-${widgetState.toLowerCase()}`}>
+            <header>PoC Widget: 시스템적 생존력 지표</header>
+            {renderContent()}
         </div>
     );
-};
+}
 
 export default PoCWidget;
