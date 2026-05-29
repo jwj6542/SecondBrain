@@ -1,73 +1,57 @@
-/**
- * PoC Widget State Machine Logic
- * 상태 전이 로직과 데이터 바인딩의 핵심을 담당합니다.
- */
+// IState 인터페이스 및 State Machine 로직 정의 (Designer 사양 기반)
+import { SimulationData } from '../Engine/PoCEngine';
 
-// 1. 인터페이스 정의 (TechSpec에서 가져온 것)
-interface PoCState {
-    timestamp: string; 
-    currentState: 'INITIAL' | 'OBSERVATION' | 'WARNING' | 'ANALYSIS_NEEDED' | 'RECOVERY';
-    capitalPreservationMetric: number; 
-    anomalyScore: number;          
-    isThresholdBreached: boolean;  
-    errorDetails?: string;         
+export interface IState {
+    stateId: 'S0' | 'S1' | 'S2' | 'S3' | 'Action Required';
+    description: string; // 사용자에게 보여줄 핵심 메시지
+    colorClass: string;   // UI 색상 결정용
+    metrics: any;         // 현재 상태의 측정 지표값
 }
 
-// 2. 전역 임계치 정의 (이 값들은 실제 시장 데이터 분석을 통해 동적으로 결정되어야 함)
-const THRESHOLDS = {
-    WARN_CAPITAL_PRESERVATION: 0.98, // 경고 시작 지점
-    CRISIS_CAPITAL_PRESERVATION: 0.90, // 개입 요구 지점
-    ANOMALY_SCORE_THRESHOLD: 0.75     // 이상치 점수 임계치
-};
-
 /**
- * 상태 전이 함수 (State Transition Function)
- * @param currentState 현재 시스템 상태
- * @param data 새로운 입력 데이터 스트림
- * @returns 다음 PoCState 객체
+ * PoC Widget의 중앙 제어 장치 (Controller)
+ * 외부 데이터(SimulationData)를 받아 다음 상태(IState)로 전이시키는 역할.
  */
-export const transitionState = (currentState: PoCState, data: any): PoCState => {
-    let newState: 'OBSERVATION' | 'WARNING' | 'ANALYSIS_NEEDED' | 'RECOVERY';
+export const StateMachine = {
+    process: (currentState: IState, data: SimulationData): IState => {
+        let nextStateId: 'S0' | 'S1' | 'S2' | 'S3' | 'Action Required';
+        let description: string;
+        let colorClass: string;
 
-    // --- [Critical Logic Check] ---
-    if (data?.capitalPreservationMetric === undefined || isNaN(data.capitalPreservationMetric)) {
-        console.error("🚨 ERROR: Missing critical data metric.");
-        // 데이터가 아예 없거나 유효하지 않으면, 즉시 분석 개입 요구 상태로 강제 전환하여 실패를 방지합니다.
-        return { 
-            ...currentState, 
-            currentState: 'ANALYSIS_NEEDED', 
-            errorDetails: "데이터 스트림에 치명적인 결측이 감지되었습니다. 시스템 재점검이 필요합니다."
+        // 🚨 핵심 로직: 데이터 기반 상태 전이 결정 (Designer v3.0 사양 구현)
+        if (data.cumulativeDrawdown > data.threshold.critical || data.volatilityIndex > data.threshold.high) {
+            nextStateId = 'S3'; // Crisis 발생
+            description = "🚨 시스템적 생존력 임계점 초과! 즉각적인 전문가 진단이 필요합니다.";
+            colorClass = "bg-red-900/80 border-red-600";
+
+        } else if (data.cumulativeDrawdown > data.threshold.mid || data.volatilityIndex > data.threshold.medium) {
+            nextStateId = 'S2'; // Warning 발생
+            description = "⚠️ 경고: 시스템에 이상 징후가 포착되었습니다. 리스크 관리에 집중해야 합니다.";
+            colorClass = "bg-yellow-900/70 border-yellow-600";
+
+        } else if (data.cumulativeDrawdown > data.threshold.low) {
+            nextStateId = 'S1'; // Observation 발생
+            description = "🔍 주의: 평소와 다른 변동성을 보입니다. 시장을 면밀히 관찰하세요.";
+            colorClass = "bg-blue-900/60 border-blue-600";
+
+        } else {
+            nextStateId = 'S0'; // Normal 상태 유지
+            description = "✅ 현재는 안정적입니다. 시스템은 정상 범위 내에서 작동 중입니다.";
+            colorClass = "bg-gray-700";
+        }
+
+
+        return {
+            stateId: nextStateId as any,
+            description: description,
+            colorClass: colorClass,
+            metrics: data // 모든 지표를 첨부하여 디버깅 용이하게 함.
         };
-    }
-
-    // --- [State Transition Logic] ---
-    if (data.capitalPreservationMetric < THRESHOLDS.CRISIS_CAPITAL_PRESERVATION || data.anomalyScore > THRESHOLDS.ANOMALY_SCORE_THRESHOLD) {
-        newState = 'ANALYSIS_NEEDED'; // 최우선 실패/위기 트랜지션
-    } else if (data.capitalPreservationMetric < THRESHOLDS.WARN_CAPITAL_PRESERVATION) {
-        newState = 'WARNING';
-    } else if (currentState === 'RECOVERY' && data.capitalPreservationMetric >= 0.99) {
-        // Recovery 상태에서 충분히 회복되면 다시 안정화(Observation)로 돌아갈 수 있음
-        newState = 'OBSERVATION';
-    } 
-    else {
-        newState = 'OBSERVATION'; // 기본값: 정상 관찰
-    }
-
-    // 새로운 상태와 데이터를 조합하여 반환 (실제 구현에서는 복잡한 로직이 추가됨)
-    return {
-        timestamp: new Date().toISOString(),
-        currentState: newState,
-        capitalPreservationMetric: data.capitalPreservationMetric || currentState.capitalPreservationMetric,
-        anomalyScore: data.anomalyScore || currentState.anomalyScore,
-        isThresholdBreached: (newState === 'WARNING' || newState === 'ANALYSIS_NEEDED'),
-    };
+    },
 };
 
-// 초기 상태 정의
-export const initialPoCState: PoCState = { 
-    timestamp: new Date().toISOString(), 
-    currentState: 'INITIAL', 
-    capitalPreservationMetric: 1.0, 
-    anomalyScore: 0.0, 
-    isThresholdBreached: false,
+export type SimulationData = {
+    cumulativeDrawdown: number;
+    volatilityIndex: number;
+    // ... 기타 필요한 지표들
 };
